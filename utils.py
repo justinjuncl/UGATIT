@@ -14,11 +14,16 @@ class ImageData:
     def image_processing(self, filename):
         x = tf.read_file(filename)
         x_decode = tf.image.decode_jpeg(x, channels=self.channels)
-        img = tf.image.resize_images(x_decode, [self.load_size, self.load_size])
+
+        h, w = x_decode.shape[1], x_decode.shape[2]
+        new_h = int(h / w * self.load_size)
+        new_w = self.load_size
+
+        img = tf.image.resize_images(x_decode, [new_h, new_w])
         img = tf.cast(img, tf.float32) / 127.5 - 1
 
         if self.augment_flag :
-            augment_size = self.load_size + (30 if self.load_size == 256 else 15)
+            augment_size = 30
             p = random.random()
             if p > 0.5:
                 img = augmentation(img, augment_size)
@@ -29,7 +34,11 @@ def load_test_data(image_path, size=256):
     img = cv2.imread(image_path, flags=cv2.IMREAD_COLOR)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    img = cv2.resize(img, dsize=(size, size))
+    h, w, c = img.shape
+    new_h = int(h / w * size)
+    new_w = size
+
+    img = cv2.resize(img, dsize=(new_h, new_w))
 
     img = np.expand_dims(img, axis=0)
     img = img/127.5 - 1
@@ -40,7 +49,7 @@ def augmentation(image, augment_size):
     seed = random.randint(0, 2 ** 31 - 1)
     ori_image_shape = tf.shape(image)
     image = tf.image.random_flip_left_right(image, seed=seed)
-    image = tf.image.resize_images(image, [augment_size, augment_size])
+    image = tf.image.resize_images(image, [ori_image_shape[1]+augment_size, ori_image_shape[2]+augment_size])
     image = tf.random_crop(image, ori_image_shape, seed=seed)
     return image
 
