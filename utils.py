@@ -16,7 +16,7 @@ class ImageData:
         x_decode = tf.image.decode_jpeg(x, channels=self.channels)
 
         h, w = x_decode.shape[1], x_decode.shape[2]
-        new_h = int(h // w * self.load_size)
+        new_h = self.load_size * h // w
         new_w = self.load_size
 
         img = tf.image.resize_images(x_decode, [new_h, new_w])
@@ -35,7 +35,7 @@ def load_test_data(image_path, size=256):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     h, w, c = img.shape
-    new_h = int(h // w * size)
+    new_h = size * h // w
     new_w = size
 
     img = cv2.resize(img, dsize=(new_h, new_w))
